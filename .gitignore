@@ -1,0 +1,6 @@
+
+*.so
+
+VirtualBiosMod.efi
+
+*.o

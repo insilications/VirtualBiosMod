@@ -23,7 +23,7 @@ OBJS            = VirtualBiosMod.o
 TARGET          = VirtualBiosMod.efi
 
 EFI_INC          = /usr/include/efi
-EFI_LIB          = /usr/lib
+EFI_LIB          = /usr/lib64
 EFI_CRT_OBJS    = $(EFI_LIB)/crt0-efi-$(ARCH).o
 EFI_LDS         = $(EFI_LIB)/elf_$(ARCH)_efi.lds
 
