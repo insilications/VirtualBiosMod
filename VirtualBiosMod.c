@@ -32,7 +32,9 @@ EFI_STATUS efi_main (EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
     int params = 0;
 
     EFI_STATUS status;
-    EFI_GUID guid = { 0xEC87D643, 0xEBA4, 0x4BB5, { 0xA1, 0xE5, 0x3F, 0x3E, 0x36, 0xB2, 0x0D, 0xA9 } };
+    EFI_GUID guid = { 0x8BE4DF61, 0x93CA, 0x11d2, { 0xAA, 0x0D, 0x00, 0xE0, 0x98, 0x03, 0x2B, 0x8C } };
+//     EFI_GUID guid = { 0xEC87D643, 0xEBA4, 0x4BB5, { 0xA1, 0xE5, 0x3F, 0x3E, 0x36, 0xB2, 0x0D, 0xA9 } };
+
 
     CHAR8 *data;
     UINTN data_size;
@@ -94,12 +96,12 @@ EFI_STATUS efi_main (EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
     Print(L"UEFI version:           %d.%02d", ST->Hdr.Revision >> 16, ST->Hdr.Revision & 0xffff);
 
     uefi_call_wrapper(ST->ConOut->SetCursorPosition, 3, ST->ConOut, 0, 12);
-    status = get_bios_variables( &guid, L"Setup", &data, &data_size, attr);
+    status = get_bios_variables( &guid, L"SetupMode", &data, &data_size, attr);
     if (status != EFI_SUCCESS) {
 	uefi_call_wrapper(ST->ConOut->SetAttribute, 2, ST->ConOut, EFI_RED|EFI_BACKGROUND_BLACK);
         Print(L"Unsupported B.I.O.S.\n" , status);
 	WaitForSingleEvent(ST->ConIn->WaitForKey, 10000000); // 10000000 = one second
-	    if ( params == 0){ 
+	    if ( params == 0){
     		return EFI_SUCCESS;
 	    } else {
 		uefi_call_wrapper(RT->ResetSystem, 4, EfiResetWarm, EFI_SUCCESS, 0, NULL);
@@ -324,7 +326,7 @@ redraw:
         case 'e':
     	    Print(L" Exiting......\n");
     	    WaitForSingleEvent(ST->ConIn->WaitForKey, 10000000); // 10000000 = one second
-	    if ( params == 0){ 
+	    if ( params == 0){
     		return EFI_SUCCESS;
 	    } else {
 		uefi_call_wrapper(RT->ResetSystem, 4, EfiResetWarm, EFI_SUCCESS, 0, NULL);
@@ -333,7 +335,7 @@ redraw:
 	    if ( changes == 0 ) {
     		Print(L" Nothing to save, booting......\n");
     		WaitForSingleEvent(ST->ConIn->WaitForKey, 10000000); // 10000000 = one second
-	    if ( params == 0){ 
+	    if ( params == 0){
     		return EFI_SUCCESS;
 	    } else {
 		uefi_call_wrapper(RT->ResetSystem, 4, EfiResetWarm, EFI_SUCCESS, 0, NULL);
@@ -344,7 +346,7 @@ redraw:
 		uefi_call_wrapper(ST->ConOut->SetAttribute, 2, ST->ConOut, EFI_RED|EFI_BACKGROUND_BLACK);
 		Print(L" ERROR saving data %r\n" , status);
 		WaitForSingleEvent(ST->ConIn->WaitForKey, 10000000); // 10000000 = one second
-	    if ( params == 0){ 
+	    if ( params == 0){
     		return EFI_SUCCESS;
 	    } else {
 		uefi_call_wrapper(RT->ResetSystem, 4, EfiResetWarm, EFI_SUCCESS, 0, NULL);
@@ -362,7 +364,7 @@ redraw:
 	    }
     	    Print(L" Exiting......\n");
     	    WaitForSingleEvent(ST->ConIn->WaitForKey, 10000000); // 10000000 = one second
-	    if ( params == 0){ 
+	    if ( params == 0){
     		return EFI_SUCCESS;
 	    } else {
 		uefi_call_wrapper(RT->ResetSystem, 4, EfiResetWarm, EFI_SUCCESS, 0, NULL);

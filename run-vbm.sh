@@ -1,6 +1,8 @@
 #!/bin/bash
-
-
-# uefi-run -b OVMF.fd -q /usr/bin/qemu-system-x86_64 VirtualBiosMod.efi
 export StartupDelay=0
-./tools/uefi-run -b ./tools/OVMF.fd VirtualBiosMod.efi
+
+# /insilications/build/custom-apps/VirtualBiosMod/tools/uefi-run --bios /insilications/build/custom-apps/VirtualBiosMod/tools/OVMF.fd --qemu qemu-system-x86_64 /insilications/build/custom-apps/VirtualBiosMod/VirtualBiosMod.efi
+
+# /insilications/build/custom-apps/VirtualBiosMod/tools/uefi-run --bios /insilications/build/custom-apps/VirtualBiosMod/OVMF.fd --qemu qemu-system-x86_64 /insilications/build/custom-apps/VirtualBiosMod/VirtualBiosMod.efi
+
+/insilications/build/custom-apps/VirtualBiosMod/tools/uefi-run --bios /usr/share/qemu/OVMF.fd --qemu qemu-system-x86_64 /insilications/build/custom-apps/VirtualBiosMod/VirtualBiosMod.efi
