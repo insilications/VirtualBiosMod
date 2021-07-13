@@ -67,7 +67,7 @@ OBJCOPYFLAGS    = -j .text \
                   -j .reloc \
                   --target=efi-app-$(ARCH)
 
-all: $(TARGET)
+all: clean $(TARGET)
 
 VirtualBiosMod.so: $(OBJS)
 		  ld $(LDFLAGS) $(OBJS) -o $@ $(LIBS)

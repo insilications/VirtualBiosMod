@@ -226,7 +226,7 @@ redraw:
 	Print(L" Press E to boot without any mods                    \n");
     }
 
-    WaitForSingleEvent(ST->ConIn->WaitForKey, 30000000); // 10000000 = one second
+    WaitForSingleEvent(ST->ConIn->WaitForKey, 80000000); // 10000000 = one second
 
     while (!exit) {
 
