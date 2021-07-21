@@ -62,6 +62,7 @@ $(TARGET).efi: $(TARGET).so
 				-O binary  \
 				--target efi-app-x86_64 \
 				$(TARGET).so $@
+	sudo cp VirtualBiosMod.efi /boot/EFI/VirtualBiosMod/VirtualBiosMod.efi
 
 # build shared object
 $(TARGET).so: $(TARGET).o $(OBJS)
