@@ -1,0 +1,87 @@
+#        This file is part of VirtualBiosMod, a virtual bios setup interface
+#        Copyright (C) 2020 Alexandru Marc Serdeliuc
+#
+#        https://github.com/serdeliuk/VirtualBiosMod
+#
+#        VirtualBiosMod is free software: you can redistribute it and/or modify
+#        it under the terms of the GNU General Public License as published by
+#        the Free Software Foundation, either version 3 of the License, or
+#        (at your option) any later version.
+#
+#        VirtualBiosMod is distributed in the hope that it will be useful,
+#        but WITHOUT ANY WARRANTY; without even the implied warranty of
+#        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#        GNU General Public License for more details.
+#
+#        You should have received a copy of the GNU General Public License
+#        along with VirtualBiosMod.  If not, see <http://www.gnu.org/licenses/>.
+
+
+ARCH            = x86_64
+
+OBJS            = VirtualBiosMod.o
+TARGET          = VirtualBiosMod.efi
+
+EFI_INC          = /usr/include/efi
+EFI_LIB          = /usr/lib64
+EFI_CRT_OBJS    = /usr/lib64/crt0-efi-x86_64.o
+EFI_LDS         = /usr/lib64/elf_x86_64_efi.lds
+#
+CFLAGS          = -fno-stack-protector \
+                  -fno-strict-aliasing \
+                  -fno-builtin \
+                  -fpic \
+                  -fshort-wchar \
+                  -mno-red-zone \
+                  -Wall -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -nostdlib -g -O0 -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -fno-reorder-functions
+
+CFLAGS        += -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args --std=c11 -mno-avx -Wl,--build-id=sha1
+
+CFLAGS          += -I/usr/include/efi \
+                   -I/usr/include/efi/x86_64 \
+                   -I/usr/include/efi/protocol
+
+LDFLAGS         = -znocombreloc \
+                -shared \
+                -Bsymbolic \
+                -nostdlib \
+                -no-undefined
+
+LDFLAGS         += -T $(EFI_LDS) \
+                   -L$(EFI_LIB) \
+                   $(EFI_CRT_OBJS)
+
+LIBS            = -lefi -lgnuefi
+# $(shell $(CC) -print-libgcc-file-name)
+OBJCOPYFLAGS    = -j .text -j .sdata -j .data -j .dynamic -j .dynsym  -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --target efi-app-x86_64 --subsystem=10
+
+CC         = gcc
+AS         = as
+LD         = ld.bfd
+AR         = ar
+RANLIB     = ranlib
+OBJCOPY    = objcopy
+
+# OBJCOPYFLAGS    = -j .text \
+#                   -j .sdata \
+#                   -j .data \
+#                   -j .dynamic \
+#                   -j .dynsym \
+#                   -j .rel \
+#                   -j .rela \
+#                   -j .reloc \
+#                   --target=efi-app-x86_64
+
+all: clean $(TARGET)
+
+VirtualBiosMod.so: $(OBJS)
+		ld.bfd $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
+
+%.efi: %.so
+		objcopy $(OBJCOPYFLAGS) $^ $@
+		sudo cp VirtualBiosMod.efi /boot/EFI/VirtualBiosMod/VirtualBiosMod.efi
+
+.PHONY:    clean
+
+clean:
+		rm -f $(OBJS) $(TARGET) VirtualBiosMod.so

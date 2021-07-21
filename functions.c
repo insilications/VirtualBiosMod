@@ -24,6 +24,42 @@
 #include <efi.h>
 #include <efilib.h>
 
+// static UINTN strlen_valid(const uint16_t *variablename, const uint64_t variablenamesize)
+// {
+// 	uint64_t len;
+// 	uint16_t c;
+//
+// 	for (len = 2; len <= variablenamesize; len += sizeof(c)) {
+// 		uint64_t i = (len / sizeof(c)) - 1;
+//
+// 		c = variablename[i];
+// 		if (!c)
+// 			break;
+// 	}
+//
+// 	return len == variablenamesize;
+// }
+
+static EFI_STATUS get_next_bios_variables(EFI_GUID *vendor, CHAR16 *name, UINTN *size) {
+//         CHAR8 *buf;
+//         UINTN l;
+        EFI_STATUS err;
+//
+//         l = sizeof(CHAR16 *) * EFI_MAXIMUM_VARIABLE_SIZE;
+//         buf = AllocatePool(l);
+//         if (!buf)
+//                 return EFI_OUT_OF_RESOURCES;
+
+        err = uefi_call_wrapper(RT->GetNextVariableName, 3, size, name, vendor);
+//         if (EFI_ERROR(err) == EFI_SUCCESS) {
+//                 *buffer = buf;
+//                 if (size)
+//                         *size = l;
+//         } else
+//                 FreePool(buf);
+        return err;
+}
+
 static EFI_STATUS get_bios_variables(const EFI_GUID *vendor, CHAR16 *name, CHAR8 **buffer, UINTN *size, UINT32 *attributes) {
         CHAR8 *buf;
         UINTN l;
@@ -44,10 +80,9 @@ static EFI_STATUS get_bios_variables(const EFI_GUID *vendor, CHAR16 *name, CHAR8
         return err;
 }
 
-
 static EFI_STATUS set_bios_variables(CHAR16 *name, const EFI_GUID *vendor, UINTN size, CHAR8 *buffer) {
     EFI_STATUS status;
-    status = uefi_call_wrapper(RT->SetVariable, 5, name, vendor, 3, size, buffer);
+    status = uefi_call_wrapper(RT->SetVariable, 5, name, vendor, 7, size, buffer);
     return status;
 }
 

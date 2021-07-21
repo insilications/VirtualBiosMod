@@ -1,81 +1,79 @@
-#        This file is part of VirtualBiosMod, a virtual bios setup interface
-#        Copyright (C) 2020 Alexandru Marc Serdeliuc
-#
-#        https://github.com/serdeliuk/VirtualBiosMod
-#
-#        VirtualBiosMod is free software: you can redistribute it and/or modify
-#        it under the terms of the GNU General Public License as published by
-#        the Free Software Foundation, either version 3 of the License, or
-#        (at your option) any later version.
-#
-#        VirtualBiosMod is distributed in the hope that it will be useful,
-#        but WITHOUT ANY WARRANTY; without even the implied warranty of
-#        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#        GNU General Public License for more details.
-#
-#        You should have received a copy of the GNU General Public License
-#        along with VirtualBiosMod.  If not, see <http://www.gnu.org/licenses/>.
+CROSS_COMPILE=
+PREFIX=/usr
+TARGET=VirtualBiosMod
+OBJS=
+ARCH=x86_64
+
+CC= $(CROSS_COMPILE)gcc
+AS= $(CROSS_COMPILE)gcc
+CPP= $(CROSS_COMPILE)gcc
+LD= $(CROSS_COMPILE)ld
+OBJDUMP= $(CROSS_COMPILE)objdump
+OBJCOPY= $(CROSS_COMPILE)objcopy
+
+# libgcc
+LIBGCC= $(shell $(CC) -print-libgcc-file-name)
+# Linker script
+LDSCRIPT= $(PREFIX)/lib64/elf_$(ARCH)_efi.lds
+# PE header and startup code
+STARTOBJ= $(PREFIX)/lib64/crt0-efi-$(ARCH).o
+# include header
+EFI_INCLUDE= $(PREFIX)/include/efi/
+INCLUDES= -I. \
+	-I$(EFI_INCLUDE) \
+	-I$(EFI_INCLUDE)/$(ARCH) \
+	-I$(EFI_INCLUDE)/protocol
+
+# CFLAGS
+CFLAGS= -DCONFIG_$(ARCH) -DGNU_EFI_USE_MS_ABI \
+ 	-mno-red-zone -fpic -D__KERNEL__ \
+	-maccumulate-outgoing-args --std=c11 \
+	-Wall -Wextra -Werror \
+	-fshort-wchar -fno-strict-aliasing \
+	-fno-merge-all-constants -ffreestanding \
+	-fno-stack-protector -fno-stack-check
+# LDFLAGS
+LDFLAGS= -nostdlib --warn-common --no-undefined \
+	--fatal-warnings --build-id=sha1 \
+	-shared -Bsymbolic
+# set EFI_SUBSYSTEM: Application(0x0a)
+LDFLAGS+= --defsym=EFI_SUBSYSTEM=0x0a
+LDFLAGS+=-L$(PREFIX)/lib64
 
 
-ARCH            = $(shell uname -m)
+####### rules #########
 
-OBJS            = VirtualBiosMod.o
-TARGET          = VirtualBiosMod.efi
+all: clean $(TARGET).efi
 
-EFI_INC          = /usr/include/efi
-EFI_LIB          = /usr/lib64
-EFI_CRT_OBJS    = $(EFI_LIB)/crt0-efi-$(ARCH).o
-EFI_LDS         = $(EFI_LIB)/elf_$(ARCH)_efi.lds
+# rebuild shared object to PE binary
+$(TARGET).efi: $(TARGET).so
+	$(OBJCOPY)	-j .text	\
+				-j .sdata	\
+				-j .data	\
+				-j .dynamic	\
+				-j .dynsym	\
+				-j .rel		\
+				-j .rela	\
+				-j .rel.*	\
+				-j .rela.*	\
+				-j .rel*	\
+				-j .rela* 	\
+				-j .reloc 	\
+				-O binary  \
+				--target efi-app-x86_64 \
+				$(TARGET).so $@
 
-CFLAGS          = -nostdlib \
-                  -fno-stack-protector \
-                  -fno-strict-aliasing \
-                  -fno-builtin \
-                  -fpic \
-                  -fshort-wchar \
-                  -mno-red-zone \
-                  -Wall
+# build shared object
+$(TARGET).so: $(TARGET).o $(OBJS)
+	$(LD) $(LDFLAGS) $(STARTOBJ) $^ -o $@	\
+		-lefi -lgnuefi $(LIBGCC) 			\
+		-T $(LDSCRIPT)
 
-ifeq ($(ARCH),x86_64)
-  CFLAGS        += -DEFI_FUNCTION_WRAPPER
-endif
 
-CFLAGS          += -I$(EFI_INC) \
-                   -I$(EFI_INC)/$(ARCH) \
-                   -I$(EFI_INC)/protocol
+%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-LDFLAGS         = -nostdlib \
-                  -znocombreloc \
-                  -shared \
-                  -no-undefined \
-                  -Bsymbolic
-
-LDFLAGS         += -T $(EFI_LDS) \
-                   -L$(EFI_LIB) \
-                   $(EFI_CRT_OBJS)
-
-LIBS            = -lefi \
-                  -lgnuefi
-
-OBJCOPYFLAGS    = -j .text \
-                  -j .sdata \
-                  -j .data \
-                  -j .dynamic \
-                  -j .dynsym \
-                  -j .rel \
-                  -j .rela \
-                  -j .reloc \
-                  --target=efi-app-$(ARCH)
-
-all: clean $(TARGET)
-
-VirtualBiosMod.so: $(OBJS)
-		  ld $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
-
-%.efi: %.so
-		  objcopy $(OBJCOPYFLAGS) $^ $@
-
-.PHONY:    clean
-
+# clean rule
+.PHONY: clean
 clean:
-		  rm -f $(OBJS) $(TARGET) VirtualBiosMod.so
+	rm -f *.o *.so s*.efi
