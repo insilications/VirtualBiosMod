@@ -31,7 +31,7 @@ CFLAGS= -DCONFIG_$(ARCH) -DGNU_EFI_USE_MS_ABI \
 	-Wall -Wextra -Werror \
 	-fshort-wchar -fno-strict-aliasing \
 	-fno-merge-all-constants -ffreestanding \
-	-fno-stack-protector -fno-stack-check
+	-fno-stack-protector -fno-stack-check -Wno-error
 # LDFLAGS
 LDFLAGS= -nostdlib --warn-common --no-undefined \
 	--fatal-warnings --build-id=sha1 \
